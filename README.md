@@ -2,6 +2,30 @@
 
 # DroidBot
 
+
+      env
+         conda create -n new_droidbot python=3.10.8 
+         
+         if silicon mac:
+            conda install -c apple tensorflow-deps  # v2.10.0 in mac studio, v2.9.0 in astroboi_m2
+            python -m pip install tensorflow-macos  # v2.13.0 in astroboi_m2
+            python -m pip install tensorflow-metal  # v1.0.1 in astroboi_m2
+            python -m pip install scikit-learn  # v1.3.0 in astroboi_m2
+
+         elif windows:
+            conda install -c conda-forge tensorflow  # v2.10.0 in mac studio
+            conda install -c anaconda scikit-learn  
+
+         pip install opencv-python==4.5.4.60  # cv2는 반드시 pip 설치
+         conda install -c pytorch pytorch=2.0.1  # pytorch, pytorchvision 부터 깔기
+         conda install -c pytorch torchvision
+         ~~conda install -c anaconda networkx=2.8.4~~  # torchvision 깔 때 같이 깔림
+         pip install androguard==3.4.0a1
+         pip install Frida-tools==12.1.2
+         conda install -c conda-forge gym=0.21.0 # 강화학습 개발 위한 패키지 gym 
+         conda install -c conda-forge imageio=2.31.1 # 영상, 이미지 관련 패키지  
+
+
 ## New!
 
 :fire: We recently integrated ChatGPT into DroidBot to support automating any app with a simple text prompt. [Take a look!](https://github.com/GAIR-team/DroidBot-GPT)
