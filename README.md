@@ -4,7 +4,7 @@
 
 
       env
-         conda create -n new_droidbot python=3.10.8 
+         conda create -n droidbot python=3.10.8 
          
          if silicon mac:
             conda install -c apple tensorflow-deps  # v2.10.0 in mac studio, v2.9.0 in astroboi_m2
