@@ -479,6 +479,7 @@ class Device(object):
         :param event: the event to be sent
         :return:
         """
+        print(f"def send_event(self, event) type(event): {type(event)}\n::::::::::::::::::::\n\n")
         event.send(self)
 
     def start_app(self, app):

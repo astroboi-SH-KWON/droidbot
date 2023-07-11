@@ -54,6 +54,8 @@ class DroidBot(object):
         self.logger = logging.getLogger('DroidBot')
         DroidBot.instance = self
 
+        # # state와 event 결과 topology graph 그릴 default 파일을 output 폴더로 fork!!!.
+        # # 나중에 droidbot/droidbot/utg.py에서 utg.js에 state, event, 그 topology graph, loading_time(new droidbot)등 만듬
         self.output_dir = output_dir
         if output_dir is not None:
             if not os.path.isdir(output_dir):

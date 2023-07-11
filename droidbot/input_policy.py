@@ -4,7 +4,7 @@ import logging
 import random
 from abc import abstractmethod
 
-from .input_event import InputEvent, KeyEvent, IntentEvent, TouchEvent, ManualEvent, SetTextEvent, KillAppEvent
+from .input_event import InputEvent, KeyEvent, IntentEvent, TouchEvent, ManualEvent, SetTextEvent, KillAppEvent, Intent
 from .utg import UTG
 
 # Max number of restarts
@@ -32,6 +32,7 @@ POLICY_REPLAY = "replay"
 POLICY_MANUAL = "manual"
 POLICY_MONKEY = "monkey"
 POLICY_NONE = "none"
+POLICY_ASTROBOI = "astroboi"  # astroboi
 POLICY_MEMORY_GUIDED = "memory_guided"  # implemented in input_policy2
 
 
@@ -67,9 +68,14 @@ class InputPolicy(object):
                 # elif self.action_count == 1 and self.master is None:
                 #     event = IntentEvent(self.app.get_start_intent())
                 if self.action_count == 0 and self.master is None:
+                    # # droidbot 최초 구동 시 (???기존에 app이 돌고 있을 수 있으니???) 확인 사살해 줌
                     event = KillAppEvent(app=self.app)
+                    print(f"InputPolicy ::: event = KillAppEvent(app=self.app) : {event}")
                 else:
+                    # # 최초 구동이 아니면 event 생산~~~~ 여기야 여기!!!
                     event = self.generate_event()
+                    print(f"InputPolicy >>> start(input_manager) event : {event}")
+                    print(f"InputPolicy >>> start(input_manager) type(event) : {type(event)}")
                 input_manager.add_event(event)
             except KeyboardInterrupt:
                 break
@@ -191,6 +197,88 @@ class UtgBasedInputPolicy(InputPolicy):
         :return: InputEvent
         """
         pass
+
+
+# class ASTROBOIInputPolicy(InputPolicy):  # astroboi
+#     """
+#     state-based input policy
+#     """
+#
+#     def __init__(self, device, app, random_input):
+#         super(ASTROBOIInputPolicy, self).__init__(device, app)
+#         self.random_input = random_input
+#         self.script = None
+#         self.master = None
+#         self.script_events = []
+#         self.last_event = None
+#         self.last_state = None
+#         self.current_state = None
+#         self.utg = UTG(device=device, app=app, random_input=random_input)
+#         self.script_event_idx = 0
+#         if self.device.humanoid is not None:
+#             self.humanoid_view_trees = []
+#             self.humanoid_events = []
+#
+#     def generate_event(self):
+#         """
+#         generate an event
+#         @return:
+#         """
+#
+#         # Get current device state
+#         self.current_state = self.device.get_current_state()
+#         if self.current_state is None:
+#             import time
+#             time.sleep(5)
+#             return KeyEvent(name="BACK")
+#
+#         self.__update_utg()
+#
+#         # update last view trees for humanoid
+#         if self.device.humanoid is not None:
+#             self.humanoid_view_trees = self.humanoid_view_trees + [self.current_state.view_tree]
+#             if len(self.humanoid_view_trees) > 4:
+#                 self.humanoid_view_trees = self.humanoid_view_trees[1:]
+#
+#         event = None
+#
+#         # if the previous operation is not finished, continue
+#         if len(self.script_events) > self.script_event_idx:
+#             event = self.script_events[self.script_event_idx].get_transformed_event(self)
+#             self.script_event_idx += 1
+#
+#         # First try matching a state defined in the script
+#         if event is None and self.script is not None:
+#             operation = self.script.get_operation_based_on_state(self.current_state)
+#             if operation is not None:
+#                 self.script_events = operation.events
+#                 # restart script
+#                 event = self.script_events[0].get_transformed_event(self)
+#                 self.script_event_idx = 1
+#
+#         if event is None:
+#             event = self.generate_event_based_on_utg()
+#
+#         # update last events for humanoid
+#         if self.device.humanoid is not None:
+#             self.humanoid_events = self.humanoid_events + [event]
+#             if len(self.humanoid_events) > 3:
+#                 self.humanoid_events = self.humanoid_events[1:]
+#
+#         self.last_state = self.current_state
+#         self.last_event = event
+#         return event
+#
+#     def __update_utg(self):
+#         self.utg.add_transition(self.last_event, self.last_state, self.current_state)
+#
+#     @abstractmethod
+#     def generate_event_based_on_utg(self):
+#         """
+#         generate an event based on UTG
+#         :return: InputEvent
+#         """
+#         pass
 
 
 class UtgNaiveSearchPolicy(UtgBasedInputPolicy):
@@ -596,7 +684,7 @@ class UtgReplayPolicy(InputPolicy):
                         if self.app.get_main_activity():
                             component += "/%s" % self.app.get_main_activity()
                         return IntentEvent(Intent(suffix=component))
-                    
+
                     self.logger.info("Replaying %s" % event_path)
                     self.event_idx = curr_event_idx
                     self.num_replay_tries = 0
@@ -604,7 +692,7 @@ class UtgReplayPolicy(InputPolicy):
                     event = InputEvent.from_dict(event_dict["event"])
                     self.last_state = self.current_state
                     self.last_event = event
-                    return event                    
+                    return event
 
             time.sleep(5)
 
@@ -635,4 +723,26 @@ class ManualPolicy(UtgBasedInputPolicy):
             start_app_intent = self.app.get_start_intent()
             return IntentEvent(intent=start_app_intent)
         else:
+            return ManualEvent()
+
+
+class ASTROBOIInputPolicy(UtgBasedInputPolicy):  # astroboi
+    def __init__(self, device, app):
+        super(ASTROBOIInputPolicy, self).__init__(device, app, False)
+        self.logger = logging.getLogger(self.__class__.__name__)
+
+        self.__first_event = True
+
+    def generate_event_based_on_utg(self):  # generate 라서 자동 생성임... 수동으로 해보자.
+        """
+        generate an event based on current UTG
+        @return: InputEvent
+        """
+        if self.__first_event:
+            self.__first_event = False
+            self.logger.info("Trying to start the app...")
+            start_app_intent = self.app.get_start_intent()
+            return IntentEvent(intent=start_app_intent)
+        else:
+            # # astroboi 여기 고쳐 보자
             return ManualEvent()
