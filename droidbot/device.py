@@ -4,17 +4,31 @@ import re
 import subprocess
 import sys
 import time
+import platform
 
-from .adapter.adb import ADB
-from .adapter.droidbot_app import DroidBotAppConn
-from .adapter.logcat import Logcat
-from .adapter.minicap import Minicap
-from .adapter.process_monitor import ProcessMonitor
-from .adapter.telnet import TelnetConsole
-from .adapter.user_input_monitor import UserInputMonitor
-from .adapter.droidbot_ime import DroidBotIme
-from .app import App
-from .intent import Intent
+
+if platform.system() == 'Darwin':  # DEV
+    from adb import ADB
+    from droidbot_app import DroidBotAppConn
+    from logcat import Logcat
+    from minicap import Minicap
+    from process_monitor import ProcessMonitor
+    from telnet import TelnetConsole
+    from user_input_monitor import UserInputMonitor
+    from droidbot_ime import DroidBotIme
+    from app import App
+    from intent import Intent
+else:  # REAL
+    from .adapter.adb import ADB
+    from .adapter.droidbot_app import DroidBotAppConn
+    from .adapter.logcat import Logcat
+    from .adapter.minicap import Minicap
+    from .adapter.process_monitor import ProcessMonitor
+    from .adapter.telnet import TelnetConsole
+    from .adapter.user_input_monitor import UserInputMonitor
+    from .adapter.droidbot_ime import DroidBotIme
+    from .app import App
+    from .intent import Intent
 
 DEFAULT_NUM = '1234567890'
 DEFAULT_CONTENT = 'Hello world!'
@@ -37,7 +51,11 @@ class Device(object):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         if device_serial is None:
-            from .utils import get_available_devices
+            if platform.system() == 'Darwin':  # DEV
+                from utils import get_available_devices
+            else:  # REAL
+                from .utils import get_available_devices
+
             all_devices = get_available_devices()
             if len(all_devices) == 0:
                 self.logger.warning("ERROR: No device connected.")

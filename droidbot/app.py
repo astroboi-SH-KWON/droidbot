@@ -1,7 +1,13 @@
 import logging
 import os
 import hashlib
-from .intent import Intent
+import platform
+
+
+if platform.system() == 'Darwin':  # DEV
+    from intent import Intent
+else:  # REAL
+    from .intent import Intent
 
 
 class App(object):

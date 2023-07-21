@@ -4,8 +4,13 @@ import subprocess
 import time
 import os
 from datetime import datetime
-from .adapter import Adapter
+import platform
 
+
+if platform.system() == 'Darwin':  # DEV
+    from adapter import Adapter
+else:  # REAL
+    from .adapter import Adapter
 
 MINICAP_REMOTE_ADDR = "localabstract:minicap"
 ROTATION_CHECK_INTERVAL_S = 1 # Check rotation once per second
@@ -279,7 +284,9 @@ class Minicap(Adapter):
             return self.last_views
 
         from . import cv
+        # # image 불러오기
         img = cv.load_image_from_buf(self.last_screen)
+        # # canny edge detection과 contour 함수 이용해서, UI의 bounding box 찾기
         view_bounds = cv.find_views(img)
         root_view = {
             "class": "CVViewRoot",
@@ -289,10 +296,10 @@ class Minicap(Adapter):
         }
         views = [root_view]
         temp_id = 1
-        for x,y,w,h in view_bounds:
+        for x, y, w, h in view_bounds:
             view = {
                 "class": "CVView",
-                "bounds": [[x,y], [x+w, y+h]],
+                "bounds": [[x, y], [x+w, y+h]],
                 "enabled": True,
                 "temp_id": temp_id,
                 "signature": cv.calculate_dhash(img[y:y+h, x:x+w]),

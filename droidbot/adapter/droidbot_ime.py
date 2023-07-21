@@ -2,8 +2,13 @@
 
 import logging
 import time
+import platform
 
-from .adapter import Adapter
+
+if platform.system() == 'Darwin':  # DEV
+    from adapter import Adapter
+else:  # REAL
+    from .adapter import Adapter
 
 DROIDBOT_APP_PACKAGE = "io.github.ylimit.droidbotapp"
 IME_SERVICE = DROIDBOT_APP_PACKAGE + "/.DroidBotIME"
