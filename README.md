@@ -24,6 +24,7 @@
          pip install Frida-tools==12.1.2
          conda install -c conda-forge gym=0.21.0 # 강화학습 개발 위한 패키지 gym 
          conda install -c conda-forge imageio=2.31.1 # 영상, 이미지 관련 패키지  
+         conda install -c anaconda chardet  # 4.0.0
 
 
 ## New!
