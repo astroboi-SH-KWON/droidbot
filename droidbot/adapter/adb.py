@@ -2,14 +2,7 @@
 import subprocess
 import logging
 import re
-import platform
-
-
-if platform.system() == 'Darwin':  # DEV
-    from adapter import Adapter
-else:  # REAL
-    from .adapter import Adapter
-
+from .adapter import Adapter
 import time
 try:
     from shlex import quote # Python 3

@@ -1,12 +1,6 @@
 import logging
 import threading
-import platform
-
-
-if platform.system() == 'Darwin':  # DEV
-    from adapter import Adapter
-else:  # REAL
-    from .adapter import Adapter
+from .adapter import Adapter
 
 
 class TelnetException(Exception):

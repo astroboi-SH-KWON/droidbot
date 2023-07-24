@@ -2,13 +2,8 @@
 
 import logging
 import time
-import platform
 
-
-if platform.system() == 'Darwin':  # DEV
-    from adapter import Adapter
-else:  # REAL
-    from .adapter import Adapter
+from .adapter import Adapter
 
 DROIDBOT_APP_PACKAGE = "io.github.ylimit.droidbotapp"
 IME_SERVICE = DROIDBOT_APP_PACKAGE + "/.DroidBotIME"
@@ -79,7 +74,7 @@ class DroidBotIme(Adapter):
         """
         self.connected = False
         r_disable = self.device.adb.shell("ime disable %s" % IME_SERVICE)
-        if r_disable.endswith("now disabled"):
+        if "now disabled" in r_disable:
             self.connected = False
             print("[CONNECTION] %s is disconnected" % self.__class__.__name__)
             return
@@ -91,7 +86,8 @@ class DroidBotIme(Adapter):
         :param text: text to input, can be unicode format
         :param mode: 0 - set text; 1 - append text.
         """
-        input_cmd = "am broadcast -a DROIDBOT_INPUT_TEXT --es text \"%s\" --ei mode %d" % (text, mode)
+        text_nospace = text.replace(' ', '--')
+        input_cmd = 'am broadcast -a DROIDBOT_INPUT_TEXT --es text %s --ei mode %d' % (text_nospace, mode)
         self.device.adb.shell(str(input_cmd))
 
 

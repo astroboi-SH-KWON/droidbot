@@ -1,13 +1,7 @@
 import subprocess
 import logging
 import copy
-import platform
-
-
-if platform.system() == 'Darwin':  # DEV
-    from adapter import Adapter
-else:  # REAL
-    from .adapter import Adapter
+from .adapter import Adapter
 
 
 class Logcat(Adapter):

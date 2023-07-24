@@ -4,7 +4,7 @@ import logging
 import random
 from abc import abstractmethod
 
-from .input_event import InputEvent, KeyEvent, IntentEvent, TouchEvent, ManualEvent, SetTextEvent, KillAppEvent, Intent
+from .input_event import InputEvent, KeyEvent, IntentEvent, TouchEvent, ManualEvent, SetTextEvent, KillAppEvent
 from .utg import UTG
 
 # Max number of restarts
@@ -684,7 +684,7 @@ class UtgReplayPolicy(InputPolicy):
                         if self.app.get_main_activity():
                             component += "/%s" % self.app.get_main_activity()
                         return IntentEvent(Intent(suffix=component))
-
+                    
                     self.logger.info("Replaying %s" % event_path)
                     self.event_idx = curr_event_idx
                     self.num_replay_tries = 0
@@ -692,7 +692,7 @@ class UtgReplayPolicy(InputPolicy):
                     event = InputEvent.from_dict(event_dict["event"])
                     self.last_state = self.current_state
                     self.last_event = event
-                    return event
+                    return event                    
 
             time.sleep(5)
 

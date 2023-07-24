@@ -4,13 +4,8 @@ import subprocess
 import time
 import os
 from datetime import datetime
-import platform
+from .adapter import Adapter
 
-
-if platform.system() == 'Darwin':  # DEV
-    from adapter import Adapter
-else:  # REAL
-    from .adapter import Adapter
 
 MINICAP_REMOTE_ADDR = "localabstract:minicap"
 ROTATION_CHECK_INTERVAL_S = 1 # Check rotation once per second

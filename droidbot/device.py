@@ -4,31 +4,17 @@ import re
 import subprocess
 import sys
 import time
-import platform
 
-
-if platform.system() == 'Darwin':  # DEV
-    from adb import ADB
-    from droidbot_app import DroidBotAppConn
-    from logcat import Logcat
-    from minicap import Minicap
-    from process_monitor import ProcessMonitor
-    from telnet import TelnetConsole
-    from user_input_monitor import UserInputMonitor
-    from droidbot_ime import DroidBotIme
-    from app import App
-    from intent import Intent
-else:  # REAL
-    from .adapter.adb import ADB
-    from .adapter.droidbot_app import DroidBotAppConn
-    from .adapter.logcat import Logcat
-    from .adapter.minicap import Minicap
-    from .adapter.process_monitor import ProcessMonitor
-    from .adapter.telnet import TelnetConsole
-    from .adapter.user_input_monitor import UserInputMonitor
-    from .adapter.droidbot_ime import DroidBotIme
-    from .app import App
-    from .intent import Intent
+from .adapter.adb import ADB
+from .adapter.droidbot_app import DroidBotAppConn
+from .adapter.logcat import Logcat
+from .adapter.minicap import Minicap
+from .adapter.process_monitor import ProcessMonitor
+from .adapter.telnet import TelnetConsole
+from .adapter.user_input_monitor import UserInputMonitor
+from .adapter.droidbot_ime import DroidBotIme
+from .app import App
+from .intent import Intent
 
 DEFAULT_NUM = '1234567890'
 DEFAULT_CONTENT = 'Hello world!'
@@ -51,11 +37,7 @@ class Device(object):
         self.logger = logging.getLogger(self.__class__.__name__)
 
         if device_serial is None:
-            if platform.system() == 'Darwin':  # DEV
-                from utils import get_available_devices
-            else:  # REAL
-                from .utils import get_available_devices
-
+            from .utils import get_available_devices
             all_devices = get_available_devices()
             if len(all_devices) == 0:
                 self.logger.warning("ERROR: No device connected.")
@@ -112,6 +94,11 @@ class Device(object):
         # minicap currently not working on emulators
         if self.is_emulator:
             self.logger.info("disable minicap on emulator")
+            self.adapters[self.minicap] = False
+
+        # minicap is not supporting android 32 and above
+        if self.get_sdk_version() >= 32:
+            self.logger.info("disable minicap on sdk >= 32")
             self.adapters[self.minicap] = False
 
     def check_connectivity(self):
@@ -497,7 +484,6 @@ class Device(object):
         :param event: the event to be sent
         :return:
         """
-        print(f"def send_event(self, event) type(event): {type(event)}\n::::::::::::::::::::\n\n")
         event.send(self)
 
     def start_app(self, app):
@@ -523,7 +509,7 @@ class Device(object):
         Get current activity
         """
         r = self.adb.shell("dumpsys activity activities")
-        activity_line_re = re.compile('\* Hist #\d+: ActivityRecord{[^ ]+ [^ ]+ ([^ ]+) t(\d+)}')
+        activity_line_re = re.compile(r'\*\s*Hist\s*#\d+:\s*ActivityRecord\{[^ ]+\s*[^ ]+\s*([^ ]+)\s*t(\d+)}')
         m = activity_line_re.search(r)
         if m:
             return m.group(1)
@@ -560,14 +546,19 @@ class Device(object):
         task_to_activities = {}
 
         lines = self.adb.shell("dumpsys activity activities").splitlines()
-        activity_line_re = re.compile('\* Hist #\d+: ActivityRecord{[^ ]+ [^ ]+ ([^ ]+) t(\d+)}')
+        activity_line_re = re.compile(r'\*\s*Hist\s*#\d+:\s*ActivityRecord\{[^ ]+\s*[^ ]+\s*([^ ]+)\s*t(\d+)}')
 
         for line in lines:
             line = line.strip()
-            if line.startswith("Task id #"):
-                task_id = line[9:]
+            activity_line_task_re = re.compile(r'^\s*Task\s*id\s*#(\d+)|^\s*Task\{\w+\s*#(\d+)')
+            activity_line_task_m = activity_line_task_re.match(line)
+            if activity_line_task_m:
+                if activity_line_task_m.group(1):
+                    task_id = activity_line_task_m.group(1)
+                else:
+                    task_id = activity_line_task_m.group(2)
                 task_to_activities[task_id] = []
-            elif line.startswith("* Hist #"):
+            elif re.match(r'\*\s*Hist\s*#', line):
                 m = activity_line_re.match(line)
                 if m:
                     activity = m.group(1)
