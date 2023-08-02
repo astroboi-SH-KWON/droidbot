@@ -4,7 +4,8 @@
 
 
       env
-         conda create -n droidbot python=3.10.8 
+         conda create -n droidbot python=3.10.8
+         conda activate droidbot
          
          if silicon mac:
             conda install -c apple tensorflow-deps  # v2.10.0 in mac studio, v2.9.0 in astroboi_m2
@@ -19,12 +20,14 @@
          pip install opencv-python==4.5.4.60  # cv2는 반드시 pip 설치
          conda install -c pytorch pytorch=2.0.1  # pytorch, pytorchvision 부터 깔기
          conda install -c pytorch torchvision
-         ~~conda install -c anaconda networkx=2.8.4~~  # torchvision 깔 때 같이 깔림
-         pip install androguard==3.4.0a1
+
+         # # androidviewclient 설치 : 반드시 droidbot 디렉터리로 이동해서, 아래 명령어를 이용한 easy_install 로 설치
+         cd droidbot
+         pip install -e ./
+
          pip install Frida-tools==12.1.2
          conda install -c conda-forge gym=0.21.0 # 강화학습 개발 위한 패키지 gym 
          conda install -c conda-forge imageio=2.31.1 # 영상, 이미지 관련 패키지  
-         conda install -c anaconda chardet  # 4.0.0
 
 
 ## New!
