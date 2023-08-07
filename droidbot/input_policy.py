@@ -70,12 +70,12 @@ class InputPolicy(object):
                 if self.action_count == 0 and self.master is None:
                     # # droidbot 최초 구동 시 (???기존에 app이 돌고 있을 수 있으니???) 확인 사살해 줌
                     event = KillAppEvent(app=self.app)
-                    print(f"InputPolicy ::: event = KillAppEvent(app=self.app) : {event}")
+                    # print(f"InputPolicy ::: event = KillAppEvent(app=self.app) : {event}")
                 else:
                     # # 최초 구동이 아니면 event 생산~~~~ 여기야 여기!!!
-                    event = self.generate_event()
-                    print(f"InputPolicy >>> start(input_manager) event : {event}")
-                    print(f"InputPolicy >>> start(input_manager) type(event) : {type(event)}")
+                    event = self.generate_event()  # # line to 140
+                    print(f"InputPolicy >>> start(input_manager) event :\n{event}\n{'>'*30}\n\n")
+                    # print(f"InputPolicy >>> start(input_manager) type(event) : {type(event)}")
                 input_manager.add_event(event)
             except KeyboardInterrupt:
                 break
@@ -142,7 +142,7 @@ class UtgBasedInputPolicy(InputPolicy):
         generate an event
         @return:
         """
-
+        print(f"input_policy.py.generate_event(self) 140 : cv_mode == {self.device.cv_mode}")
         # Get current device state
         self.current_state = self.device.get_current_state()
         if self.current_state is None:
@@ -560,9 +560,9 @@ class UtgGreedySearchPolicy(UtgBasedInputPolicy):
 
     def __sort_inputs_by_humanoid(self, possible_events):
         if sys.version.startswith("3"):
-            from xmlrpc.client import ServerProxy
+            from xmlrpc.client import ServerProxy  # # python 3.x 쓰는 경우
         else:
-            from xmlrpclib import ServerProxy
+            from xmlrpclib import ServerProxy  # # python 2.x 쓰는 경우
         proxy = ServerProxy("http://%s/" % self.device.humanoid)
         request_json = {
             "history_view_trees": self.humanoid_view_trees,
@@ -654,6 +654,7 @@ class UtgReplayPolicy(InputPolicy):
         @return: InputEvent
         """
         import time
+        print(f"이건 언제 쓰나요???????????????????????????????????????????????")
         while self.event_idx < len(self.event_paths) and \
               self.num_replay_tries < MAX_REPLY_TRIES:
             self.num_replay_tries += 1
