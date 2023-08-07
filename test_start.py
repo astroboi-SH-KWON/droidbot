@@ -22,7 +22,9 @@ POLICY_NONE = "none"
 POLICY_ASTROBOI = "astroboi"
 POLICY_MEMORY_GUIDED = "memory_guided"  # implemented in input_policy2
 """
-def parse_args(device_serial, apk_path, output_path, tesing_time, use_cv=True, policy='dfs_naive', is_emulator=True):
+
+
+def parse_args(device_serial, apk_path, output_path, tesing_time, use_cv=False, policy='dfs_greedy', is_emulator=True):
     """
     parse command line input
     generate options including host name, port number
@@ -109,7 +111,7 @@ def parse_args(device_serial, apk_path, output_path, tesing_time, use_cv=True, p
     parser.add_argument("-replay_output", action="store", dest="replay_output",
                         help="The droidbot output directory being replayed.")
     options = parser.parse_args()
-    # print options
+    print(f"options ::::::::::::::::::::::::::::\n{options}\n::::::::::::::::::::::::::::::::::::::::::::::::::::::")
     return options
 
 
@@ -137,6 +139,7 @@ def main(opts):
             start_mode = "worker"
     else:
         start_mode = "normal"
+    print(f"start_mode : {start_mode}")
 
     if start_mode == "master":
         droidmaster = DroidMaster(
@@ -158,8 +161,8 @@ def main(opts):
             profiling_method=opts.profiling_method,
             grant_perm=opts.grant_perm,
             enable_accessibility_hard=opts.enable_accessibility_hard,
-            qemu_hda=opts.qemu_hda,
-            qemu_no_graphic=opts.qemu_no_graphic,
+            qemu_hda=opts.qemu_hda,  # # master 에만, bot 에 없음
+            qemu_no_graphic=opts.qemu_no_graphic,  # # master 에만, bot 에 없음
             humanoid=opts.humanoid,
             ignore_ad=opts.ignore_ad,
             replay_output=opts.replay_output)
@@ -167,7 +170,7 @@ def main(opts):
     else:
         droidbot = DroidBot(
             app_path=opts.apk_path,
-            device_serial=opts.device_serial,
+            device_serial=opts.device_serial,  # # master 에는 없고, droidbot 에만
             is_emulator=opts.is_emulator,
             output_dir=opts.output_dir,
             # env_policy=opts.env_policy,
@@ -185,7 +188,7 @@ def main(opts):
             profiling_method=opts.profiling_method,
             grant_perm=opts.grant_perm,
             enable_accessibility_hard=opts.enable_accessibility_hard,
-            master=opts.master,
+            master=opts.master,  # # master 에는 없고, droidbot 에만
             humanoid=opts.humanoid,
             ignore_ad=opts.ignore_ad,
             replay_output=opts.replay_output)
@@ -194,7 +197,8 @@ def main(opts):
     # return stop
 ###################################################
 
-def device_serials():
+
+def get_device_serials():
     device_serials = []
     adb_devices = subprocess.getoutput('adb devices')
     # print('adb_devices = ', adb_devices)
@@ -206,17 +210,20 @@ def device_serials():
             # print(lines.split('\t')[0])
             if len(lines.split('\t')[0]) > 1:
                 device_serials.append(lines.split('\t')[0])
-    print('device_serials = ', device_serials)
     return device_serials
 
 
 if __name__ == "__main__":
-    device_serial = device_serials()[0]
-    apk_path = 'apk/Gallery_photo.apk'
+    device_serial = get_device_serials()[0]
+    # apk_path = 'apk/Gallery_photo.apk'
+    apk_path = '/Users/astroboi_m2/PycharmProjects/droidbot/apk/sinla.apk'
+    # apk_path = '/Users/astroboi_m2/PycharmProjects/droidbot/apk/Gallery_photo.apk'
     # # Pixel 2 in emulater
     # apk_path = '/Users/astroboi_m2/Library/Caches/Google/AndroidStudio2022.2/device-explorer/Pixel 2 API 31/product/app/Camera2/Camera2.apk'
-    output_path = 'output/gallery_photo'
+    # apk_path = '/Users/astroboi_m2/Library/Caches/Google/AndroidStudio2022.2/device-explorer/Pixel 2 API 31/product/app/Gallery_photo.apk'
+    output_path = f'output/{apk_path.split("/")[-1].replace(".apk", "")}'
     # tesing_time = 300
     tesing_time = -1
-    opts = parse_args(device_serial=device_serial, apk_path=apk_path, output_path=output_path, tesing_time=tesing_time)
+    opts = parse_args(device_serial=device_serial, apk_path=apk_path, output_path=output_path
+                      , tesing_time=tesing_time)
     main(opts=opts)
